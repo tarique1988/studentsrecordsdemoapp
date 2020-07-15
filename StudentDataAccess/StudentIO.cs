@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -7,7 +8,7 @@ namespace StudentDataAccess
 {
     public static class StudentIO
     {
-        static string filePath = @"C:\test.txt";
+        static string filePath = @$"{Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)}\test.txt";
         static List<Student> students = new List<Student>();
 
         #region Load all Students
@@ -26,11 +27,21 @@ namespace StudentDataAccess
                     }
                 }
             }
-            catch
+            catch (IOException ex)
             {
-                using (StreamWriter streamWriter = File.AppendText(filePath))
+                Trace.WriteLine(ex.Message);
+                try
                 {
-                    streamWriter.Write(string.Empty);
+                    using (StreamWriter streamWriter = File.AppendText(filePath))
+                    {
+
+                        streamWriter.Write(string.Empty);
+                    }
+
+                }
+                catch (UnauthorizedAccessException unAuthException)
+                {
+                    Trace.WriteLine(unAuthException.Message);
                 }
             }
             return students;
@@ -40,9 +51,17 @@ namespace StudentDataAccess
         #region Save a Student
         public static void SaveStudent(Student student)
         {
-            using (StreamWriter streamWriter = File.AppendText(filePath))
+            try
             {
-                streamWriter.WriteLine(student.ToJson());
+                using (StreamWriter streamWriter = File.AppendText(filePath))
+                {
+                    streamWriter.WriteLine(student.ToJson());
+                }
+
+            }
+            catch(UnauthorizedAccessException unAuthorizedAccessException)
+            {
+                Trace.WriteLine(unAuthorizedAccessException.Message);
             }
         }
         #endregion

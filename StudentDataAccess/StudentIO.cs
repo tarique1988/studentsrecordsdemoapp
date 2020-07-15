@@ -14,13 +14,23 @@ namespace StudentDataAccess
         public static List<Student> LoadStudents()
         {
             students.Clear();
-            using (StreamReader streamReader = File.OpenText(filePath))
+            try
             {
-                string line;
-                while ((line = streamReader.ReadLine()) != null)
+                using (StreamReader streamReader = File.OpenText(filePath))
                 {
-                    if (line.Trim().Length > 0)
-                        students.Add(new Student(line));
+                    string line;
+                    while ((line = streamReader.ReadLine()) != null)
+                    {
+                        if (line.Trim().Length > 0)
+                            students.Add(new Student(line));
+                    }
+                }
+            }
+            catch
+            {
+                using (StreamWriter streamWriter = File.AppendText(filePath))
+                {
+                    streamWriter.Write(string.Empty);
                 }
             }
             return students;

@@ -1,11 +1,7 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Permissions;
 using System.Text;
 
 namespace StudentDataAccess
@@ -18,20 +14,25 @@ namespace StudentDataAccess
         public static List<Student> LoadStudents()
         {
             students.Clear();
-            List<string> lines = File.ReadAllLines(filePath).ToList();
-
-            foreach (string line in lines)
+            using (StreamReader streamReader = File.OpenText(filePath))
             {
-                if (line.Trim().Length > 0)
-                    students.Add(new Student(line));
+                string line;
+                while ((line = streamReader.ReadLine()) != null)
+                {
+                    if (line.Trim().Length > 0)
+                        students.Add(new Student(line));
+                }
             }
-
             return students;
         }
 
         public static void SaveStudent(Student student)
         {
-            File.AppendAllText(filePath, $"{student.ToJson()}\n");
+            using(StreamWriter streamWriter = File.AppendText(filePath))
+            {
+                streamWriter.WriteLine(student.ToJson());
+            }
+            //File.AppendAllText(filePath, $"{student.ToJson()}\n");
         }
 
         public static void RemoveStudent(int index)
@@ -51,7 +52,7 @@ namespace StudentDataAccess
             builder.AppendLine($"Id, Name, Class, Section, Contact, Address");
 
             LoadStudents();
-            if(students.Count == 0)
+            if (students.Count == 0)
             {
                 return false;
             }
@@ -61,7 +62,11 @@ namespace StudentDataAccess
             }
             try
             {
-                File.WriteAllText(path, builder.ToString());
+                File.WriteAllText(path, string.Empty);
+                using (TextWriter tw = new StreamWriter(path, true))
+                {
+                    tw.Write(builder);
+                }
                 return true;
             }
             catch
@@ -74,7 +79,7 @@ namespace StudentDataAccess
         {
             LoadStudents();
             Trace.WriteLine($"Number of students: {students.Count}");
-            if(students.Count == 0)
+            if (students.Count == 0)
             {
                 return 0;
             }
@@ -85,6 +90,7 @@ namespace StudentDataAccess
         {
             LoadStudents();
             students[selectedIndex] = in_student;
+
             File.WriteAllText(filePath, string.Empty);
             foreach (Student student in students)
             {
